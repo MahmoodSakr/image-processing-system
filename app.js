@@ -3,7 +3,7 @@ const mongoose = require("mongoose");
 const cookieParser = require("cookie-parser");
 const imagesRouteFile = require("./routes/images");
 const usersRouterFile = require("./routes/users");
-const uploadingImagesRouter = require("./routes/uploadingImage");
+const uploadingImagesRouterFile = require("./routes/uploadingImage");
 const path = require("path");
 const moment = require("moment");
 const ejs = require("ejs");
@@ -37,7 +37,7 @@ app.get("/", (req, res) => {
 });
 app.use("/images", imagesRouteFile);
 app.use("/users", usersRouterFile);
-app.use("/uploadImage", uploadingImagesRouter);
+app.use("/uploadImage", uploadingImagesRouterFile);
 //otherwise .. the bad request
 app.use((req, res) => {
   res.render("badRequest");

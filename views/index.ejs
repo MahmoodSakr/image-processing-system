@@ -43,10 +43,13 @@
     <form id="uploadForm" action="/uploadImage" method="post">
         <input type="file" name="fileFormField" id="file" /><br /><br />
         <input type="submit" value="Upload image" name="submit"><br /><br />
+        <span> uploadedStatus : <%= uploadedStatus %> </span>
         <span id="status"></span>
     </form>
+    <% if (uploadedStatus) { %>
     <h2> <a href="/uploadImage/images"> Click to see all previous uploaded images</a> </h2>
     <h2> <a href="/uploadImage/info"> Click to see a brief on these images</a> </h2>
+    <% } %>
 </body>
 
 </html>

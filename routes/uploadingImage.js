@@ -31,8 +31,7 @@ router.post("/", async (req, res) => {
     if (err) {
       return res.end("Error occurred during uploading the image file !");
     }
-    // the ajax response (success)
-    res.end("Image file has been uploaded successfully.");
+
     // Begins working with sharp process to process the uploaded image file
     try {
       // path of the original one
@@ -113,6 +112,10 @@ router.post("/", async (req, res) => {
       );
       // Create an image with the image 6 buffer on the specified path
       fs.writeFileSync(img_6_path, img6Buffer);
+
+      // the ajax response (success)
+      res.end("Image file has been uploaded successfully.");
+      // global.uploadedStatus = true;
     } catch (error) {
       console.error("error : ", error.message);
     }

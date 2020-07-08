@@ -32,6 +32,7 @@ dbConnection.on("error", (error) => {
 app.set("view engine", "ejs"); // specify the used template engine
 app.set("views", path.join(__dirname, "views")); // set the path of the views folder
 //------------Routes---------------
+global.uploadedStatus = true;
 app.get("/", (req, res) => {
   res.render("index");
 });

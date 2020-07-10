@@ -11,6 +11,7 @@ const dotenv = require("dotenv");
 //---------Create express application-------------
 var app = express();
 dotenv.config();
+global.imageNum = 0;
 //--------------Middlewares-----------------------
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
@@ -34,7 +35,7 @@ app.set("views", path.join(__dirname, "views")); // set the path of the views fo
 //------------Routes---------------
 global.uploadedStatus = true;
 app.get("/", (req, res) => {
-  res.render("index");
+  res.render("uploadImage");
 });
 app.use("/images", imagesRouteFile);
 app.use("/users", usersRouterFile);

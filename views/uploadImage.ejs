@@ -13,23 +13,23 @@
             // adjust the form submit button action to send a post route to the submit url 
             $('#uploadForm').submit(function () {
                 if ($('#file').val() != "" && anotherClicked == true) {
-                    $("#status").empty().text("Image file is being uploading ...");
+                    $("#status").empty().text("Please wait ... as the image file being uploading .....");
                     $(this).ajaxSubmit({
                         success: function (response) {
                             $("#status").empty().text(response);
+                            $('#next').empty()
                         },
                         error: function (err) {
                             $("#status").empty().text('Uploading Error : ' + err.status);
                         },
                     });
                     anotherClicked = false;
-
                 } else if ($('#file').val() != "" && anotherClicked == false) {
                     $("#status").empty();
-                    alert('This image file was already uploaded before !');
+                    alert('This image was already uploaded before !');
                 } else {
                     $("#status").empty();
-                    alert('Firstly, please select any image file to be uploaded !');
+                    alert('Sorry, please select any image file to be uploaded !');
                 }
                 return false;
             });
@@ -43,13 +43,11 @@
     <form id="uploadForm" action="/uploadImage" method="post">
         <input type="file" name="fileFormField" id="file" /><br /><br />
         <input type="submit" value="Upload image" name="submit"><br /><br />
-        <span> uploadedStatus : <%= uploadedStatus %> </span>
         <span id="status"></span>
     </form>
-    <% if (uploadedStatus) { %>
-    <h2> <a href="/uploadImage/images"> Click to see all previous uploaded images</a> </h2>
-    <h2> <a href="/uploadImage/info"> Click to see a brief on these images</a> </h2>
-    <% } %>
+    <div id="next"></div>
+    <h2> <a href="/uploadImage/images">Uploaded Images Gallery</a> </h2>
+    <h2> <a href="/uploadImage/info">Gallery info</a> </h2>
 </body>
 
 </html>

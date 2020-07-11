@@ -67,7 +67,7 @@ router.post(
       }
       // user is added on the db
       console.log("New user has been added : ", user);
-      return res.redirect("/login");
+      return res.redirect("users/login");
       // return res.status(201).json({ "New user has been added": user });
     });
   }
@@ -135,7 +135,7 @@ router.get("/logout", async (req, res) => {
     var userObj = await jwt.verify(req.cookies.token, "secretkey");
     console.log("The signed out userObj", userObj);
     res.clearCookie("token");
-    res.redirect("/login");
+    res.redirect("users/login");
     // return res
     //   .status(200)
     //   .json({ message: userObj.username + " has been signed out" });

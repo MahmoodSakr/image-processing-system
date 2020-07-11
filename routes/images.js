@@ -30,7 +30,7 @@ function checkAuthentication(req, res, next) {
   if (req.cookies.token) {
     next();
   } else {
-    res.json("No authenticated user is logined");
+    res.send("No authenticated user is logined");
   }
 }
 
@@ -127,7 +127,7 @@ router.post("/uploadImage", checkAuthentication, async (req, res) => {
       fs.writeFileSync(img_6_path, img6Buffer);
 
       // the ajax response (success)
-      res.end("Okay, Image file has been uploaded successfully.");
+      res.end("Image file has been uploaded successfully.");
     } catch (error) {
       console.error("error : ", error.message);
     }
@@ -166,7 +166,7 @@ router.get("/info", async (req, res) => {
     res.send(output);
   } else {
     res.send(
-      '<h1>No images are uploaded yet !</h1><h3> <a href="/uploadImage"> Return to upload an image</a> </h3>'
+      '<h1>No images are uploaded yet !</h1><h3> <a href="images/uploadImage"> Return to upload an image</a> </h3>'
     );
   }
 });

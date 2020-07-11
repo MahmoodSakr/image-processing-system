@@ -125,7 +125,6 @@ router.post("/uploadImage", checkAuthentication, async (req, res) => {
       );
       // Create an image with the image 6 buffer on the specified path
       fs.writeFileSync(img_6_path, img6Buffer);
-
       // the ajax response (success)
       res.end("Image file has been uploaded successfully.");
     } catch (error) {
@@ -162,11 +161,11 @@ router.get("/info", async (req, res) => {
       images_counter / 7 +
       "</h1>";
     output +=
-      '<h3> <a href="/uploadImage"> Return to upload an image</a> </h3>';
+      '<h3> <a href="/images/uploadImage"> Return to upload an image</a> </h3>';
     res.send(output);
   } else {
     res.send(
-      '<h1>No images are uploaded yet !</h1><h3> <a href="images/uploadImage"> Return to upload an image</a> </h3>'
+      '<h1>No images are uploaded yet !</h1><h3> <a href="/images/uploadImage"> Return to upload an image</a> </h3>'
     );
   }
 });

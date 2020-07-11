@@ -67,7 +67,7 @@ router.post(
       }
       // user is added on the db
       console.log("New user has been added : ", user);
-      return res.redirect("users/login");
+      return res.redirect("/users/login");
       // return res.status(201).json({ "New user has been added": user });
     });
   }
@@ -122,7 +122,7 @@ router.post(
         //   message: "This user is logined successfully.",
         //   "User details": user,
         // });
-        return res.redirect("images/uploadImage");
+        return res.redirect("/images/uploadImage");
       }
     } catch (err) {
       return res.status(500).json({ errorMessage: err.message });
@@ -135,7 +135,7 @@ router.get("/logout", async (req, res) => {
     var userObj = await jwt.verify(req.cookies.token, "secretkey");
     console.log("The signed out userObj", userObj);
     res.clearCookie("token");
-    res.redirect("users/login");
+    res.redirect("/users/login");
     // return res
     //   .status(200)
     //   .json({ message: userObj.username + " has been signed out" });

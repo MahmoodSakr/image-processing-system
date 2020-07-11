@@ -1,249 +1,174 @@
 const express = require("express");
-const { check, validationResult } = require("express-validator");
-const imageModel = require("../models/image");
-const jwt = require("jsonwebtoken");
-router = express.Router();
-//------------Routes---------------
-// Show all images
-router.get("/", (req, res) => {
-  imageModel.find((err, images) => {
-    if (err) {
-      return res.status(500).json({ errorMessage: err.message });
-    }
-    if (images.length == 0) {
-      return res
-        .status(200)
-        .json({ message: "No images are existed in the db" });
-    } else {
-      return res
-        .status(200)
-        .json({ "All existed images in the Db are ": images });
-    }
-  });
+const multer = require("multer");
+const fs = require("fs");
+const path = require("path");
+const sharp = require("sharp");
+const router = express.Router();
+const uuid = require("uuid");
+// -------------- Upload a file -----------------
+var original_imageName = "";
+var storage = multer.diskStorage({
+  // specify the destination folder path
+  destination: function (req, file, callback) {
+    callback(null, "uploadedImages");
+  },
+  // specify the file name after be uploaded
+  filename: function (req, file, callback) {
+    arr = file.originalname.split(".");
+    imgExt = arr[arr.length - 1];
+    counter = global.imageNum += 1;
+    original_imageName = counter + "_" + 0 + "." + imgExt;
+    console.log("original_imageName", original_imageName);
+    callback(null, original_imageName);
+  },
 });
-// Add a new image + Authentication
-router.post(
-  "/add",
-  authenticate,
-  [
-    check(
-      "name",
-      "Please enter a valid image name as it must not be empty, decimal, or email !"
-    )
-      .not()
-      .isEmpty()
-      .not()
-      .isDecimal()
-      .not()
-      .isEmail(),
-    check(
-      "category",
-      "Please enter a valid category name as it must not be empty, decimal, or email !"
-    )
-      .not()
-      .isEmpty()
-      .not()
-      .isDecimal()
-      .not()
-      .isEmail(),
-    check(
-      "productionCompany",
-      "Please enter a valid productionCompany name as it must not be empty, decimal, or email !"
-    )
-      .not()
-      .isEmpty()
-      .not()
-      .isDecimal()
-      .not()
-      .isEmail(),
-    check(
-      "productionYear",
-      "Please enter a valid productionYear as it must not be empty, letters, or email !"
-    )
-      .not()
-      .isEmpty()
-      .isDecimal()
-      .not()
-      .isEmail(),
-  ],
-  async (req, res) => {
-    // Form validation
-    const errors = validationResult(req);
-    // check errors
-    if (!errors.isEmpty()) {
-      return res.json({ errorMessage: errors.array() });
-    }
-    // No Errors
-    // Get the hashed cookies and get the user id to be inserted as a owner id for the image
-    try {
-      userObj = await jwt.verify(req.cookies.token, "secretkey");
-    } catch (error) {
-      return res.json({ errorMessage: errors.message });
-    }
-    // Add a new image
-    imageObj = new imageModel();
-    imageObj.owner_id = userObj._id;
-    imageObj.name = req.body.name;
-    imageObj.category = req.body.category;
-    imageObj.productionCompany = req.body.productionCompany;
-    imageObj.productionYear = req.body.productionYear;
-    // insert a new image document in the db
-    imageObj.save((err, image) => {
-      // error checking
-      if (err) {
-        return res.status(500).json({ errorMessage: err.message });
-      }
-      // No Error
-      // Check for the adding of a new image document in the db
-      // Is the image insertion is done
-      if (image != null) {
-        console.log("New image is added", image);
-        return res.status(201).json({ "New image is added": image });
-      } else {
-        // Is the image insertion is not done
-        return res
-          .status(500)
-          .json({ message: "The image data is not added to the Db !" });
-      }
-    });
-  }
-);
-// Search for a image + Authentication
-router.get("/:id", authenticate, (req, res) => {
-  imageModel.findById(req.params.id, (err, image) => {
-    if (err) {
-      return res.status(500).json({ errorMessage: err.message });
-    } else if (image != null) {
-      return res.status(200).json({ "This image is founded ": image });
-    } else {
-      return res
-        .status(500)
-        .json({ message: "This image is not founded in the db" });
-    }
-  });
-});
-
-// Edit/Update an existed image + Authentication + Authorization (inside the function)
-router.patch("/:id", authenticate, async (req, res) => {
-  // search for it before being updated
-  try {
-    image = await imageModel.findById(req.params.id);
-    if (image != null) {
-      // Checks for user Authorization
-      const userObj = await jwt.verify(req.cookies.token, "secretkey");
-      // if the user is authorized to update the image data
-      if (image.owner_id == userObj._id) {
-        imageModel.updateMany(
-          { _id: req.params.id },
-          {
-            $set: {
-              name: req.body.name == null ? image.name : req.body.name,
-              category:
-                req.body.category == null ? image.category : req.body.category,
-              productionCompany:
-                req.body.productionCompany == null
-                  ? image.productionCompany
-                  : req.body.productionCompany,
-              productionYear:
-                req.body.productionYear == null
-                  ? image.productionYear
-                  : req.body.productionYear,
-            },
-          },
-          (err, updatedResult) => {
-            console.log("updatedResult", updatedResult);
-            if (err) {
-              return res.status(500).json({ errorMessage: err.message });
-            } else if (updatedResult.nModified > 0) {
-              return res
-                .status(200)
-                .json({ message: "The image is updated successfully" });
-            } else if (updatedResult.nModified == 0 && updatedResult.ok == 1) {
-              return res.status(500).json({
-                message:
-                  "The inserted image data are existed before, so no updating is done",
-              });
-            } else {
-              return res.status(500).json({
-                message:
-                  "An error is occurred in during updating the image data !",
-              });
-            }
-          }
-        );
-      } else {
-        // The current user is not authorized
-        return res.status(403).json({
-          message: "Sorry, this user is not authorized to update this image",
-        });
-      }
-    } else {
-      return res.status(500).json({
-        message: "This image is not founded in the db to be updated !",
-      });
-    }
-  } catch (err) {
-    return res.status(500).json({ errorMessage: err.message });
-  }
-});
-
-// Delete an existed image + Authentication + Authorization (inside the function)
-router.delete("/:id", authenticate, async (req, res) => {
-  // search for it before being deleted
-  try {
-    image = await imageModel.findById(req.params.id);
-    if (image != null) {
-      // Checks the user authorization
-      const userObj = await jwt.verify(req.cookies.token, "secretkey");
-      // if the user is authorized to delete the image
-      if (image.owner_id == userObj._id) {
-        imageModel.deleteMany({ _id: req.params.id }, (err, deletedResult) => {
-          if (err) {
-            return res.status(500).json({ errorMessage: err.message });
-          } else if (deletedResult.deletedCount > 0) {
-            return res
-              .status(200)
-              .json({ message: "This image has been deleted successfully" });
-          } else {
-            return res
-              .status(500)
-              .json({ message: "Error on deleting the image" });
-          }
-        });
-      } else {
-        // The user is not authorized to delete the image
-        return res.status(403).json({
-          message: "Sorry, this user is not authorized to delete this image",
-        });
-      }
-    } else {
-      return res.status(500).json({
-        message: "This image is not founded in the db to be deleted !",
-      });
-    }
-  } catch (err) {
-    return res.status(500).json({ errorMessage: err.message });
-  }
-});
-
-// Create an authentication middleware for protecting the route
-async function authenticate(req, res, next) {
-  try {
-    console.log("The req path / url is : ", req.url);
-    if (req.cookies.token) {
-      const userObj = await jwt.verify(req.cookies.token, "secretkey");
-      console.log("The current user name ", userObj.username);
-      console.log("The current user id ", userObj._id);
-      next();
-    } else {
-      return res
-        .status(403)
-        .json({ message: "Please you have to sign in firstly!" });
-    }
-  } catch (err) {
-    res.status(500).json({ errorMessage: err.message });
+// Returns middleware that processes a the selected file from the form which its field name the file form element field name.
+// fileFormField : is the file field name of the form
+var upload = multer({ storage: storage }).single("fileFormField");
+// -------------- Routes ----------------------
+function checkAuthentication(req, res, next) {
+  if (req.cookies.token) {
+    next();
+  } else {
+    res.json("No authenticated user is logined");
   }
 }
 
-//----------------------------------
+router.get("/uploadImage", checkAuthentication, (req, res) => {
+  res.render("uploadImage");
+});
+
+router.post("/uploadImage", checkAuthentication, async (req, res) => {
+  // receive the ajax submit sending when the file form button is clicked
+  upload(req, res, async (err) => {
+    // the ajax response (error)
+    if (err) {
+      return res.end("Error occurred during uploading the image file !");
+    }
+    // Begins working with sharp process to process the uploaded image file
+    try {
+      // path of the original one
+      const original_img_path = path.join(
+        __dirname,
+        "/..",
+        "uploadedImages",
+        original_imageName
+      );
+
+      // apply sharp process on the original image to produce a buffer for the image 1
+      const img1Buffer = await sharp(original_img_path).rotate(180).toBuffer();
+      const img_1_path = path.join(
+        __dirname,
+        "/..",
+        "uploadedImages",
+        counter + "_" + 1 + "." + imgExt
+      );
+      // Create an image with the image 6 buffer on the specified path
+      fs.writeFileSync(img_1_path, img1Buffer);
+
+      // apply sharp process on the original image to produce a buffer for the image 2
+      const img2Buffer = await sharp(original_img_path).blur().toBuffer();
+      const img_2_path = path.join(
+        __dirname,
+        "/..",
+        "uploadedImages",
+        counter + "_" + 2 + "." + imgExt
+      );
+      // Create an image with the image 2 buffer on the specified path
+      fs.writeFileSync(img_2_path, img2Buffer);
+
+      // apply sharp process on the original image to produce a buffer for the image 3
+      const img3Buffer = await sharp(original_img_path).sharpen().toBuffer();
+      const img_3_path = path.join(
+        __dirname,
+        "/..",
+        "uploadedImages",
+        counter + "_" + 3 + "." + imgExt
+      );
+      // Create an image with the image 3 buffer on the specified path
+      fs.writeFileSync(img_3_path, img3Buffer);
+
+      // apply sharp process on the original image to produce a buffer for the image 4
+      const img4Buffer = await sharp(original_img_path).greyscale().toBuffer();
+      const img_4_path = path.join(
+        __dirname,
+        "/..",
+        "uploadedImages",
+        counter + "_" + 4 + "." + imgExt
+      );
+      // Create an image with the image 4 buffer on the specified path
+      fs.writeFileSync(img_4_path, img4Buffer);
+
+      // apply sharp process on the original image to produce a buffer for the image 5
+      const img5Buffer = await sharp(original_img_path)
+        .resize(250, 250)
+        .toBuffer();
+      const img_5_path = path.join(
+        __dirname,
+        "/..",
+        "uploadedImages",
+        counter + "_" + 5 + "." + imgExt
+      );
+      // Create an image with the image 5 buffer on the specified path
+      fs.writeFileSync(img_5_path, img5Buffer);
+
+      // apply sharp process on the original image to produce a buffer for the image 6
+      const img6Buffer = await sharp(original_img_path)
+        .resize(140, 140)
+        .toBuffer();
+
+      const img_6_path = path.join(
+        __dirname,
+        "/..",
+        "uploadedImages",
+        counter + "_" + 6 + "." + imgExt
+      );
+      // Create an image with the image 6 buffer on the specified path
+      fs.writeFileSync(img_6_path, img6Buffer);
+
+      // the ajax response (success)
+      res.end("Okay, Image file has been uploaded successfully.");
+    } catch (error) {
+      console.error("error : ", error.message);
+    }
+  });
+});
+
+router.get("/", checkAuthentication, async (req, res) => {
+  const imagesDirectory = await fs.opendirSync(
+    path.join(__dirname, "/..", "uploadedImages")
+  );
+  var imgPathArr = [];
+  for await (const imageFile of imagesDirectory) {
+    imgPathArr.push(imageFile.name);
+  }
+  console.log("All images are: ", imgPathArr);
+  res.render("images", { imgPathArr: imgPathArr });
+});
+router.get("/info", async (req, res) => {
+  const imagesDirectory = await fs.opendirSync(
+    path.join(__dirname, "/..", "uploadedImages")
+  );
+  var images_counter = 0;
+  var output = "<h2><u>The uploaded images details</u></h2>";
+  for await (const imageFile of imagesDirectory) {
+    output += "<h3>" + ++images_counter + " : " + imageFile.name + "</h3>";
+    console.log(images_counter + " : " + imageFile.name);
+  }
+  if (images_counter > 0) {
+    output += "<hr>";
+    output +=
+      "<h1> <u>The total uploaded images number is : </u>" +
+      images_counter / 7 +
+      "</h1>";
+    output +=
+      '<h3> <a href="/uploadImage"> Return to upload an image</a> </h3>';
+    res.send(output);
+  } else {
+    res.send(
+      '<h1>No images are uploaded yet !</h1><h3> <a href="/uploadImage"> Return to upload an image</a> </h3>'
+    );
+  }
+});
+//-----------------------------------------------------
 module.exports = router;

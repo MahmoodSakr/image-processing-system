@@ -5,19 +5,17 @@ const jwt = require("jsonwebtoken");
 const router = express.Router();
 //-------------Routes---------------
 // Add new user from the sign up form post request
+
+router.get("/login", (req, res) => {
+  res.render("login");
+});
+router.get("/signup", (req, res) => {
+  res.render("signup");
+});
+
 router.post(
   "/signup",
   [
-    check("fname", "User first name must not be empty or decimal")
-      .not()
-      .isEmpty()
-      .not()
-      .isDecimal(),
-    check("lname", "user last name must not be empty or decimal")
-      .not()
-      .isEmpty()
-      .not()
-      .isDecimal(),
     check(
       "email",
       "User email must be a valid format and not be empty or decimal"
@@ -52,8 +50,6 @@ router.post(
     }
     // Create a new user
     user = new userModel();
-    user.fname = req.body.fname;
-    user.lname = req.body.lname;
     user.email = req.body.email;
     user.username = req.body.username;
     user.password = req.body.password;
@@ -70,8 +66,9 @@ router.post(
           .json({ message: "Cant add a new user to the db" });
       }
       // user is added on the db
-      console.log("New user has been added: ", user);
-      return res.status(201).json({ "New user has been added": user });
+      console.log("New user has been added : ", user);
+      return res.redirect("/login");
+      // return res.status(201).json({ "New user has been added": user });
     });
   }
 );
@@ -121,10 +118,11 @@ router.post(
         var token = await jwt.sign(userObj, "secretkey");
         // for each logined use data, a jwt token is stored in the user/client  browser as a cookie
         res.cookie("token", token);
-        return res.status(200).json({
-          message: "This user is logined successfully.",
-          "User details": user,
-        });
+        // return res.status(200).json({
+        //   message: "This user is logined successfully.",
+        //   "User details": user,
+        // });
+        return res.redirect("images/uploadImage");
       }
     } catch (err) {
       return res.status(500).json({ errorMessage: err.message });
@@ -137,9 +135,10 @@ router.get("/logout", async (req, res) => {
     var userObj = await jwt.verify(req.cookies.token, "secretkey");
     console.log("The signed out userObj", userObj);
     res.clearCookie("token");
-    return res
-      .status(200)
-      .json({ message: userObj.username + " has been signed out" });
+    res.redirect("/login");
+    // return res
+    //   .status(200)
+    //   .json({ message: userObj.username + " has been signed out" });
   } else {
     return res.status(200).json({
       message: "No user is logined in before, please sign in !",
@@ -152,8 +151,7 @@ router.get("/", (req, res) => {
   userModel.find((err, users) => {
     if (err) {
       return res.status(500).json({ errorMessage: err.message });
-    }
-    if (users.length == 0) {
+    } else if (users.length == 0) {
       return res.status(500).json({ message: "No users are existed in Db" });
     }
     return res.status(200).json({ "All existed users in db": users });

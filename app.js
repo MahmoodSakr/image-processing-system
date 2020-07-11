@@ -3,10 +3,10 @@ const mongoose = require("mongoose");
 const cookieParser = require("cookie-parser");
 const imagesRouteFile = require("./routes/images");
 const usersRouterFile = require("./routes/users");
-const uploadingImagesRouterFile = require("./routes/uploadingImage");
 const path = require("path");
 const moment = require("moment");
 const ejs = require("ejs");
+const jwt = require("jsonwebtoken");
 const dotenv = require("dotenv");
 //---------Create express application-------------
 var app = express();
@@ -34,13 +34,23 @@ app.set("view engine", "ejs"); // specify the used template engine
 app.set("views", path.join(__dirname, "views")); // set the path of the views folder
 //------------Routes---------------
 global.uploadedStatus = true;
+app.use(async (req, res, next) => {
+  if (req.cookies.token) {
+    userObj = await jwt.verify(req.cookies.token, "secretkey");
+    res.locals.user = userObj;
+    console.log("Current user is : ", userObj);
+  } else {
+    console.log("No user is logined");
+    res.locals.user = null;
+  }
+  next();
+});
 app.get("/", (req, res) => {
   res.render("uploadImage");
 });
 app.use("/images", imagesRouteFile);
 app.use("/users", usersRouterFile);
-app.use("/uploadImage", uploadingImagesRouterFile);
-//otherwise .. the bad request
+//otherwise ... the bad request
 app.use((req, res) => {
   res.render("badRequest");
 });

@@ -1,0 +1,17 @@
+<nav class="navbar navbar-inverse">
+    <div class="container-fluid">
+        <div class="navbar-header">
+            <a style="color: aliceblue;" class="navbar-brand">Image processing system</a>
+        </div>
+
+        <ul class="nav navbar-nav navbar-right">
+            <% if (user != null) { %>
+            <li class="active"><a>Logined user :<%= user.username %> </a></li>
+            <li><a href="users/logout"><span class=" glyphicon glyphicon-log-out"></span>Logout</a></li>
+            <% }else{ %>
+            <li><a href="users/signup"><span class="glyphicon glyphicon-user"></span> Sign Up</a></li>
+            <li><a href="users/login"><span class=" glyphicon glyphicon-log-in"></span> Login</a></li>
+            <%} %>
+        </ul>
+    </div>
+</nav>

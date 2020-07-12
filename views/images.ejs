@@ -2,54 +2,77 @@
 
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Images Info</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <title>Images</title>
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/css/bootstrap.min.css">
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
     <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/js/bootstrap.min.js"></script>
     <style>
-        table,
-        th,
-        tr,
-        td {
-            border: 1px solid rgb(255, 0, 0);
+        .container {
+            width: auto;
+            padding-right: auto;
+            padding-left: auto;
+            margin-right: auto;
+            margin-left: auto;
+        }
+
+        .table {
+            border: 1px solid blue;
             font-size: large;
+            color: red;
+        }
+
+        .table>thead>tr>th {
+            border: 1px solid blue;
+        }
+
+        .table>tbody>tr>td {
+            border: 1px solid blue;
         }
     </style>
 </head>
 
 <body>
     <%- include('./header') %>
-
     <% i=1 %>
     <% if (imgPathArr.length>0) { %>
     <h1><u> There are <%=imgPathArr.length/7 %> uploaded images </u></h1>
-    <table style="width:auto">
-        <tr>
-            <th>Original image</th>
-            <th>Rotated by 180</th>
-            <th>Blurred</th>
-            <th>Sharped</th>
-            <th>Gray</th>
-            <th>250*250</th>
-            <th>140*140</th>
-        </tr>
-        <tr>
-            <% imgPathArr.forEach((imgPath) => { %>
-            <td>
-                <img src="<%=imgPath %>" />
-            </td>
-            <% if (i==7) { %>
-        </tr>
-        <tr>
-            <% i=0 %>
-            <% } %>
-            <% i++ %>
-            <% }) %>
-    </table>
+    <h1><u> There are <%= imgCounter %> uploaded images </u></h1>
+
+    <div class="table-responsive table-bordered">
+        <table class="table">
+            <thead>
+                <tr>
+                    <th>Original image</th>
+                    <th>Resized by 500*500</th>
+                    <th>Blurred</th>
+                    <th>Gray</th>
+                    <th>Sharped</th>
+                    <th>Rotated by 180</th>
+                    <th>Resized by 250*250</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <% imgPathArr.forEach((imgPath) => { %>
+                    <td>
+                        <img src="/<%=user._id %>/<%=imgPath %>" />
+                    </td>
+                    <% if (i==7) { %>
+                </tr>
+                <tr>
+                    <% i=0 %>
+                    <% } %>
+                    <% i++ %>
+                    <% }) %>
+            </tbody>
+        </table>
+    </div>
     <% } else {%>
     <h1>No images are uploaded yet !</h1>
     <% }%>
+
 </body>
 
 </html>

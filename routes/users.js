@@ -2,6 +2,9 @@ const express = require("express");
 const userModel = require("../models/user");
 const { check, validationResult } = require("express-validator");
 const jwt = require("jsonwebtoken");
+const fs = require("fs");
+const path = require("path");
+const uuid = require("uuid");
 const router = express.Router();
 //-------------Routes---------------
 // Add new user from the sign up form post request
@@ -9,6 +12,7 @@ const router = express.Router();
 router.get("/login", (req, res) => {
   res.render("login");
 });
+
 router.get("/signup", (req, res) => {
   res.render("signup");
 });
@@ -41,20 +45,27 @@ router.post(
       (value, { req }) => value === req.body.password
     ),
   ],
-  (req, res) => {
+  async (req, res) => {
     // User sign up form validation
     errors = validationResult(req);
     if (!errors.isEmpty()) {
       console.log("Sign up request validation errors : ", errors.array());
-      return res.status(400).json({ errorMessage: errors.array() });
+
+      errors.array().forEach((error) => {
+        req.flash("danger", error.msg);
+      });
+      return res.redirect("/users/signup");
+      // return res.status(400).json({ errorMessage: errors.array() });
     }
     // Create a new user
     user = new userModel();
+    user._id = uuid.v4();
+    user.imgCounter = 0;
     user.email = req.body.email;
     user.username = req.body.username;
     user.password = req.body.password;
     // insert a new user in the db
-    user.save((err, user) => {
+    user.save(async (err, user) => {
       // error
       if (err) {
         return res.status(500).json({ errorMessage: err.message });
@@ -66,7 +77,13 @@ router.post(
           .json({ message: "Cant add a new user to the db" });
       }
       // user is added on the db
+      dirPath = path.join(__dirname, "..", "uploadedImages", user._id);
+      fs.mkdirSync(dirPath);
       console.log("New user has been added : ", user);
+      req.flash(
+        "info",
+        `${user.username} account has been registered successfully`
+      );
       return res.redirect("/users/login");
       // return res.status(201).json({ "New user has been added": user });
     });
@@ -96,7 +113,11 @@ router.post(
       const errors = validationResult(req);
       if (!errors.isEmpty()) {
         console.log("Login request validation errors", errors.array());
-        return res.status(400).json({ errorMessage: errors.array() });
+        errors.array().forEach((error) => {
+          req.flash("danger", error.msg);
+        });
+        return res.redirect("/users/login");
+        // return res.status(400).json({ errorMessage: errors.array() });
       }
       // Search for user data
       // if u need to use bcrypt to hash the password before the query filter, u have to do that here
@@ -106,15 +127,18 @@ router.post(
       });
       if (user == null) {
         // User not founded
-        return res.status(404).json({
-          message: "This user is not founded, please sign up firstly !",
-        });
+        req.flash("danger", "This user is not founded, please sign up firstly");
+        return res.redirect("/users/login");
+        // return res.status(404).json({
+        //   message: "This user is not founded, please sign up firstly !",
+        // });
       } else {
         // User is existed
         // Store its username and id as a cookies to be used in the authentication and authorization processes
         userObj = {};
         userObj._id = user._id;
         userObj.username = user.username;
+        global.imgCounter = userObj.imgCounter = user.imgCounter;
         var token = await jwt.sign(userObj, "secretkey");
         // for each logined use data, a jwt token is stored in the user/client  browser as a cookie
         res.cookie("token", token);
@@ -122,6 +146,7 @@ router.post(
         //   message: "This user is logined successfully.",
         //   "User details": user,
         // });
+        req.flash("info", `Welcome ${userObj.username}`);
         return res.redirect("/images/uploadImage");
       }
     } catch (err) {
@@ -135,14 +160,18 @@ router.get("/logout", async (req, res) => {
     var userObj = await jwt.verify(req.cookies.token, "secretkey");
     console.log("The signed out userObj", userObj);
     res.clearCookie("token");
-    res.redirect("/users/login");
+    global.imgCounter = 0;
+    req.flash("info", `${userObj.username} has been logout now`);
+    return res.redirect("/users/login");
     // return res
     //   .status(200)
     //   .json({ message: userObj.username + " has been signed out" });
   } else {
-    return res.status(200).json({
-      message: "No user is logined in before, please sign in !",
-    });
+    req.flash("danger", "No user is logined in before, please sign in !");
+    res.redirect("/users/login");
+    // return res.status(200).json({
+    //   message: "No user is logined in before, please sign in !",
+    // });
   }
 });
 
@@ -201,6 +230,7 @@ router.delete("/delete/:id", deleting_authorization, async (req, res) => {
     res.status(500).json({ errorMessage: error.message });
   }
 });
+
 async function deleting_authorization(req, res, next) {
   try {
     if (req.cookies.token) {

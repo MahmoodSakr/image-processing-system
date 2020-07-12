@@ -8,15 +8,29 @@ const moment = require("moment");
 const ejs = require("ejs");
 const jwt = require("jsonwebtoken");
 const dotenv = require("dotenv");
+const flash = require("connect-flash");
+const session = require("express-session");
+const express_messages = require("express-messages");
 //---------Create express application-------------
 var app = express();
 dotenv.config();
-global.imageNum = 0;
 //--------------Middlewares-----------------------
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
 app.use(express.static(path.join(__dirname, "uploadedImages")));
+app.use(
+  session({
+    secret: process.env.secretKey,
+    resave: true,
+    saveUninitialized: true,
+  })
+);
+app.use(flash());
+app.use(function (req, res, next) {
+  res.locals.messages = express_messages(req, res);
+  next();
+});
 //---------------MongoDB Connection---------------
 mongoose.connect(process.env.DbUrl, {
   useNewUrlParser: true,
@@ -33,7 +47,6 @@ dbConnection.on("error", (error) => {
 app.set("view engine", "ejs"); // specify the used template engine
 app.set("views", path.join(__dirname, "views")); // set the path of the views folder
 //------------Routes---------------
-global.uploadedStatus = true;
 app.use(async (req, res, next) => {
   if (req.cookies.token) {
     userObj = await jwt.verify(req.cookies.token, "secretkey");

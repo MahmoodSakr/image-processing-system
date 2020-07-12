@@ -145,6 +145,16 @@ router.post(
         //   message: "This user is logined successfully.",
         //   "User details": user,
         // });
+
+        // if folder of this user is not found, create a new folder for him
+        usersImgDir = path.join(__dirname, "..", "uploadedImages", userObj._id);
+        if (!fs.existsSync(usersImgDir)) {
+          fs.mkdirSync(usersImgDir);
+          console.log(
+            "A new img folder is created for the user -- because his folder was not founded !"
+          );
+        }
+
         req.flash("info", `Welcome ${userObj.username}`);
         return res.redirect("/images/uploadImage");
       }

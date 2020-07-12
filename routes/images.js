@@ -13,9 +13,9 @@ var storage = multer.diskStorage({
   destination: async function (req, file, callback) {
     userObj = await jwt.verify(req.cookies.token, "secretkey");
     console.log("userObj who access/owner of the folder", userObj);
-    callback(null, path.join(__dirname, "..", "uploadedImages"));
+    callback(null, path.join(__dirname, "..", "uploadedImages", userObj._id));
   },
-  // specify the file name after be uploaded
+  // specify the file name after be uploaded to be created in the directory created above
   filename: function (req, file, callback) {
     arr = file.originalname.split(".");
     imgExt = arr[arr.length - 1];
@@ -32,7 +32,9 @@ function checkAuthentication(req, res, next) {
   if (req.cookies.token) {
     next();
   } else {
-    res.send("No authenticated user is logined");
+    req.flash("danger", "No authenticated user is logined");
+    res.redirect("/users/login");
+    // res.send("No authenticated user is logined");
   }
 }
 
@@ -155,15 +157,23 @@ router.post("/uploadImage", checkAuthentication, (req, res) => {
 });
 
 router.get("/", checkAuthentication, async (req, res) => {
-  const imagesDirectory = await fs.opendirSync(
-    path.join(__dirname, "..", "uploadedImages", userObj._id)
-  );
-  var imgPathArr = [];
-  for await (const imageFile of imagesDirectory) {
-    imgPathArr.push(imageFile.name);
+  userObj = await jwt.verify(req.cookies.token, "secretkey");
+  usersImgDir = path.join(__dirname, "..", "uploadedImages", userObj._id);
+  if (!fs.existsSync(usersImgDir)) {
+    req.flash(
+      "danger",
+      "The img folder of this user is not found, may be the user is not registered or removed"
+    );
+    res.redirect("/users/login");
+  } else {
+    const imagesDirectory = fs.opendirSync(usersImgDir);
+    var imgPathArr = [];
+    for await (const imageFile of imagesDirectory) {
+      imgPathArr.push(imageFile.name);
+    }
+    console.log("All images are: ", imgPathArr);
+    res.render("images", { imgPathArr: imgPathArr });
   }
-  console.log("All images are: ", imgPathArr);
-  res.render("images", { imgPathArr: imgPathArr });
 });
 
 router.get("/info", async (req, res) => {

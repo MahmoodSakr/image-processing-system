@@ -43,7 +43,7 @@
     <h1 style="color: red;"> Click on upload image to get one </h1>
     <br>
     <form id="uploadForm" action="/images/uploadImage" method="post">
-        <input class="btn btn-info" type="file" name="fileFormField" id="file"><br /><br />
+        <input class="btn btn-info" type="file" name="fileFormField" id="file" accept="image/*"><br /><br />
         <input class="btn btn-info" type="submit" value="Upload image" name="submit"><br /><br />
         <label> Uploading status: </label> <span id="status"></span>
     </form>

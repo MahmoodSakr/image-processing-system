@@ -50,7 +50,6 @@ router.post(
     errors = validationResult(req);
     if (!errors.isEmpty()) {
       console.log("Sign up request validation errors : ", errors.array());
-
       errors.array().forEach((error) => {
         req.flash("danger", error.msg);
       });

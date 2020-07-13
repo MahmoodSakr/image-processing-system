@@ -3,32 +3,45 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-
     <title>Images</title>
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/css/bootstrap.min.css">
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
     <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/js/bootstrap.min.js"></script>
     <style>
+        .navbar {
+            position: relative;
+            min-height: 50px;
+            border: 1px solid transparent;
+        }
+
         .container {
             width: auto;
-            padding-right: auto;
+            padding-top: auto;
             padding-left: auto;
             margin-right: auto;
-            margin-left: auto;
+            margin-bottom: auto;
         }
 
         .table {
             border: 1px solid blue;
             font-size: large;
             color: red;
+            text-align: center;
+
         }
 
         .table>thead>tr>th {
             border: 1px solid blue;
+            margin: auto;
+            text-align: center;
+
         }
 
         .table>tbody>tr>td {
             border: 1px solid blue;
+            margin: auto;
+            text-align: center;
+
         }
     </style>
 </head>
@@ -37,9 +50,8 @@
     <%- include('./header') %>
     <% i=1 %>
     <% if (imgPathArr.length>0) { %>
-    <h1><u> There are <%=imgPathArr.length/7 %> uploaded images </u></h1>
-    <h1><u> There are <%= imgCounter %> uploaded images </u></h1>
-
+    <!-- <h1><u> There are <%=imgPathArr.length/7 %> uploaded images </u></h1> -->
+    <h2 style="color: red;"> Hello <%= user.username %>, you uploaded <%= imgCounter %> images before.</h2>
     <div class="table-responsive table-bordered">
         <table class="table">
             <thead>
@@ -69,10 +81,9 @@
             </tbody>
         </table>
     </div>
-    <% } else {%>
-    <h1>No images are uploaded yet !</h1>
+    <% } else  {%>
+    <h1>No images are uploaded yet to your profile!</h1>
     <% }%>
-
 </body>
 
 </html>

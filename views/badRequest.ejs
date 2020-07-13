@@ -10,6 +10,12 @@
     <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/js/bootstrap.min.js"></script>
 
     <style>
+        .navbar {
+            position: relative;
+            min-height: 50px;
+            border: 1px solid transparent;
+        }
+
         * {
             padding: 0;
             margin: 0;
@@ -219,10 +225,20 @@
             box-shadow: 0 0 20px 0 #C0D7DD;
         }
     </style>
-
+    <script>
+        function createCookie(name, value, days) {
+            if (days) {
+                var date = new Date();
+                date.setTime(date.getTime() + (days * 24 * 60 * 60 * 1000));
+                var expires = "; expires=" + date.toGMTString();
+            }
+            else var expires = "";
+            document.cookie = name + "=" + value + expires + "; path=/";
+        }
+    </script>
 </head>
 
-<body>
+<body onload="createCookie('token', '', -1)">
     <%- include('./header') %>
     <div class="container">
         <div class="error">

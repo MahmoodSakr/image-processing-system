@@ -8,11 +8,16 @@
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.16.0/umd/popper.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/bootbox.js/5.4.0/bootbox.min.js"></script>
+    <style>
+        #ddd {
+            margin-bottom: 1px;
+        }
+    </style>
     <script>
         $(document).ready(function () {
             setTimeout(() => {
-                $('#messages').hide(4000);
-            }, 5000);
+                $('#messages').hide(3500);
+            }, 6000);
         });
     </script>
 </head>
@@ -21,7 +26,7 @@
     <div id="messages">
         <% Object.keys(messages).forEach(function (type) { %>
         <% messages[type].forEach(function (message) { %>
-        <div class="alert alert-<%=type %> alert-dismissible">
+        <div class="alert alert-<%=type %> alert-dismissible" id="ddd">
             <button type="button" class="close" data-dismiss="alert">×</button>
             <%= message %>
         </div>

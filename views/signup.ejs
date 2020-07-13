@@ -10,6 +10,12 @@
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
     <link href='https://use.fontawesome.com/releases/v5.8.1/css/all.css'>
     <style>
+        .navbar {
+            position: relative;
+            min-height: 50px;
+            border: 1px solid transparent;
+        }
+
         body {
             margin: 0;
             padding: 0;
@@ -19,7 +25,7 @@
 
         .box {
             width: 500px;
-            padding: 18px;
+            padding: 16px;
             position: absolute;
             top: 50%;
             left: 50%;
@@ -111,9 +117,20 @@
             transition: all 0.8s
         }
     </style>
+    <script>
+        function createCookie(name, value, days) {
+            if (days) {
+                var date = new Date();
+                date.setTime(date.getTime() + (days * 24 * 60 * 60 * 1000));
+                var expires = "; expires=" + date.toGMTString();
+            }
+            else var expires = "";
+            document.cookie = name + "=" + value + expires + "; path=/";
+        }
+    </script>
 </head>
 
-<body>
+<body onunload="createCookie('token', '', -1)">
     <%- include('./header1') %>
     <div class="row">
         <div class="col-md-6">

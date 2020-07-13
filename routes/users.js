@@ -10,7 +10,11 @@ const router = express.Router();
 // Add new user from the sign up form post request
 
 router.get("/login", (req, res) => {
-  res.render("login");
+  if (req.cookies.token) {
+    res.redirect("/images/uploadImage");
+  } else {
+    res.render("login");
+  }
 });
 
 router.get("/signup", (req, res) => {
@@ -81,7 +85,7 @@ router.post(
       console.log("New user has been added : ", user);
       req.flash(
         "info",
-        `${user.username} account has been registered successfully`
+        `${user.username} 's account has been registered successfully`
       );
       return res.redirect("/users/login");
       // return res.status(201).json({ "New user has been added": user });
@@ -126,35 +130,47 @@ router.post(
       });
       if (user == null) {
         // User not founded
-        req.flash("danger", "This user is not founded, please sign up firstly");
+        req.flash(
+          "danger",
+          "User is not founded ! Please enter an authenticated user credential or register a new one."
+        );
         return res.redirect("/users/login");
         // return res.status(404).json({
         //   message: "This user is not founded, please sign up firstly !",
         // });
       } else {
         // User is existed
-        // Store its username and id as a cookies to be used in the authentication and authorization processes
-        userObj = {};
-        userObj._id = user._id;
-        userObj.username = user.username;
-        global.imgCounter = userObj.imgCounter = user.imgCounter;
-        var token = await jwt.sign(userObj, "secretkey");
-        // for each logined use data, a jwt token is stored in the user/client  browser as a cookie
-        res.cookie("token", token);
-        // return res.status(200).json({
-        //   message: "This user is logined successfully.",
-        //   "User details": user,
-        // });
 
         // if folder of this user is not found, create a new folder for him
-        usersImgDir = path.join(__dirname, "..", "uploadedImages", userObj._id);
+        userDirIsNotFounded = false;
+        usersImgDir = path.join(__dirname, "..", "uploadedImages", user._id);
         if (!fs.existsSync(usersImgDir)) {
           fs.mkdirSync(usersImgDir);
+          await userModel.findByIdAndUpdate(user._id, {
+            $set: { imgCounter: 0 },
+          });
+          userDirIsNotFounded = true;
           console.log(
             "A new img folder is created for the user -- because his folder was not founded !"
           );
         }
 
+        // return res.status(200).json({
+        //   message: "This user is logined successfully.",
+        //   "User details": user,
+        // });
+
+        // Store its username and id as a cookies to be used in the authentication and authorization processes
+        userObj = {};
+        userObj._id = user._id;
+        userObj.username = user.username;
+        global.imgCounter = userObj.imgCounter = user.imgCounter;
+        if (userDirIsNotFounded) {
+          global.imgCounter = userObj.imgCounter = 0;
+        }
+        var token = await jwt.sign(userObj, "secretkey");
+        // for each logined use data, a jwt token is stored in the user/client  browser as a cookie
+        res.cookie("token", token);
         req.flash("info", `Welcome ${userObj.username}`);
         return res.redirect("/images/uploadImage");
       }
@@ -176,7 +192,7 @@ router.get("/logout", async (req, res) => {
     //   .status(200)
     //   .json({ message: userObj.username + " has been signed out" });
   } else {
-    req.flash("danger", "No user is logined in before, please sign in !");
+    req.flash("danger", "No user is logined ! , please sign in !");
     res.redirect("/users/login");
     // return res.status(200).json({
     //   message: "No user is logined in before, please sign in !",

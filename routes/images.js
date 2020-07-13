@@ -28,15 +28,58 @@ var storage = multer.diskStorage({
 // fileFormField : is the file field name of the form
 var upload = multer({ storage: storage }).single("fileFormField");
 // -------------- Routes ----------------------
-function checkAuthentication(req, res, next) {
+async function checkAuthentication(req, res, next) {
+  // Is there any user cookie
   if (req.cookies.token) {
-    next();
+    // checks for the owner user of this cookie
+    userObj = await jwt.verify(req.cookies.token, "secretkey");
+    // get the user from the DB
+    user = await userModel.findById(userObj._id); // the user owner of the cookie
+    // If the user is already existed in the db
+    if (user) {
+      // The img dir of the logined user
+      usersImgDir = path.join(__dirname, "..", "uploadedImages", userObj._id);
+      // if the user img dir is existed
+      if (!fs.existsSync(usersImgDir)) {
+        // the logined user is authenticated and his folder is not existed
+        req.flash(
+          "danger",
+          "The img folder of logined user is not found. Please contact and reported that to the admin"
+        );
+        res.redirect("/users/login");
+      } else {
+        // the logined user is authenticated and his folder is existed
+        next();
+      }
+    } else {
+      // No user in the Db, so remove the cookie and login route is redirect
+      res.clearCookie("token");
+      req.flash(
+        "danger",
+        "This user is not authenticated ! Please sign in with another user"
+      );
+      res.redirect("/users/login");
+    }
   } else {
-    req.flash("danger", "No authenticated user is logined");
+    req.flash("danger", "No user is logined , please sign in here");
     res.redirect("/users/login");
     // res.send("No authenticated user is logined");
   }
 }
+
+router.get("/", checkAuthentication, async (req, res) => {
+  const userImgDirectory = fs.opendirSync(usersImgDir);
+  var imgPathArr = [];
+  for await (const imageFile of userImgDirectory) {
+    imgPathArr.push(imageFile.name);
+  }
+  console.log(
+    imgPathArr.length > 0
+      ? `There are ${imgPathArr.length} images in the user profile`
+      : `User profile is empty`
+  );
+  res.render("images", { imgPathArr: imgPathArr });
+});
 
 router.get("/uploadImage", checkAuthentication, (req, res) => {
   res.render("uploadImage");
@@ -156,33 +199,13 @@ router.post("/uploadImage", checkAuthentication, (req, res) => {
   });
 });
 
-router.get("/", checkAuthentication, async (req, res) => {
-  userObj = await jwt.verify(req.cookies.token, "secretkey");
-  usersImgDir = path.join(__dirname, "..", "uploadedImages", userObj._id);
-  if (!fs.existsSync(usersImgDir)) {
-    req.flash(
-      "danger",
-      "The img folder of this user is not found, may be the user is not registered or removed"
-    );
-    res.redirect("/users/login");
-  } else {
-    const imagesDirectory = fs.opendirSync(usersImgDir);
-    var imgPathArr = [];
-    for await (const imageFile of imagesDirectory) {
-      imgPathArr.push(imageFile.name);
-    }
-    console.log("All images are: ", imgPathArr);
-    res.render("images", { imgPathArr: imgPathArr });
-  }
-});
-
-router.get("/info", async (req, res) => {
-  const imagesDirectory = await fs.opendirSync(
+router.get("/info", checkAuthentication, async (req, res) => {
+  const userImgDirectory = await fs.opendirSync(
     path.join(__dirname, "..", "uploadedImages", userObj._id)
   );
   var i = 0; // img index [1:7]
   var output = "<h2><u>The uploaded images details</u></h2>";
-  for await (const imageFile of imagesDirectory) {
+  for await (const imageFile of userImgDirectory) {
     output += "<h3>" + ++i + " : " + imageFile.name + "</h3>";
     console.log(i + " : " + imageFile.name);
   }

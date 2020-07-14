@@ -59,7 +59,7 @@ app.use(async (req, res, next) => {
   next();
 });
 app.get("/", (req, res) => {
-  res.redirect("/users/login");
+  res.render("login");
 });
 app.use("/images", imagesRouteFile);
 app.use("/users", usersRouterFile);

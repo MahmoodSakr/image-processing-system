@@ -73,6 +73,7 @@ router.get("/", checkAuthentication, async (req, res) => {
   for await (const imageFile of userImgDirectory) {
     imgPathArr.push(imageFile.name);
   }
+  imgPathArr.sort();
   console.log(
     imgPathArr.length > 0
       ? `There are ${imgPathArr.length} images in the user profile`

@@ -5,9 +5,12 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Images</title>
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery.form/3.51/jquery.form.min.js"></script>
     <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/js/bootstrap.min.js"></script>
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/css/bootstrap.min.css">
+    <link rel="stylesheet" href="/css/style.css">
     <link rel="stylesheet" href="/css/w3.css">
+
     <style>
         .navbar {
             position: relative;
@@ -17,14 +20,14 @@
 
         .container {
             width: auto;
-            padding-top: 20px;
-            margin-top: 20px;
+            padding-top: 10px;
         }
 
         .table {
             border: 1px solid blue;
             font-size: large;
-            color: red;
+            color: black;
+            font-weight: bold;
             text-align: center;
         }
 
@@ -46,8 +49,12 @@
     <%- include('./header') %>
     <div class="container">
         <% if (imgPathArr.length>0) { %>
-        <!-- <h1><u> There are <%=imgPathArr.length/6 %> uploaded images </u></h1> -->
-        <h2 style="color: blue;"> Hello <%= user.username %>, you uploaded <%= imgCounter %> images before.</h2>
+        <div class="animate three" style="padding-bottom: 14px;">
+            <span>Hey</span> &nbsp; <span><%= user.username %>,</span> &nbsp; <span>your</span> &nbsp;
+            <span>gallery</span> &nbsp; <span>contains</span> &nbsp;<span><%= imgPathArr.length/6 %></span>
+            &nbsp;<span>images.</span>
+        </div>
+
         <% i=1 %>
         <div class="table-responsive table-bordered">
             <table class="table">

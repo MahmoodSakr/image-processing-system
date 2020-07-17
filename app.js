@@ -45,6 +45,7 @@ app.set("view engine", "ejs"); // specify the used template engine
 app.set("views", path.join(__dirname, "views")); // set the path of the views folder
 //------------Routes---------------
 app.use(async (req, res, next) => {
+  console.log("The current traffic is : ", req.path);
   res.locals.messages = express_messages(req, res); // flash middleware
   if (req.cookies.token) {
     userObj = await jwt.verify(req.cookies.token, "secretkey");
@@ -53,8 +54,6 @@ app.use(async (req, res, next) => {
     // If the user is already existed in the db
     if (user) {
       app.locals.user = user;
-      global.imgCounter = user.imgCounter;
-      console.log("Current user is : ", user);
       next();
     } else {
       // No user in the Db, so remove the cookie and login route is redirect

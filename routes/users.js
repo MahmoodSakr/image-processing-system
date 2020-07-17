@@ -31,15 +31,10 @@ router.get("/signup", (req, res) => {
 router.post(
   "/signup",
   [
-    check(
-      "email",
-      "User email must be a valid format and not be empty or decimal"
-    )
+    check("email", "Email must be a written in a valid format and not be empty")
       .not()
       .isEmpty()
-      .isEmail()
-      .not()
-      .isDecimal(),
+      .isEmail(),
     check("username", "Username must not be empty or decimal")
       .not()
       .isEmpty()
@@ -70,7 +65,6 @@ router.post(
     // Create a new user
     user = new userModel();
     user._id = uuid.v4();
-    user.imgCounter = 0;
     user.email = req.body.email;
     user.username = req.body.username;
     user.password = req.body.password;
@@ -150,14 +144,9 @@ router.post(
       } else {
         // User is existed
         // if folder of this user is not found, create a new folder for him
-        userDirIsNotFounded = false;
         usersImgDir = path.join(__dirname, "..", "uploadedImages", user._id);
         if (!fs.existsSync(usersImgDir)) {
           fs.mkdirSync(usersImgDir);
-          await userModel.findByIdAndUpdate(user._id, {
-            $set: { imgCounter: 0 },
-          });
-          userDirIsNotFounded = true;
           console.log(
             "A new img folder is created for the user -- because his folder was not founded !"
           );
@@ -171,10 +160,6 @@ router.post(
         userObj = {};
         userObj._id = user._id;
         userObj.username = user.username;
-        global.imgCounter = userObj.imgCounter = user.imgCounter;
-        if (userDirIsNotFounded) {
-          global.imgCounter = userObj.imgCounter = 0;
-        }
         var token = await jwt.sign(userObj, "secretkey");
         // for each logined use data, a jwt token is stored in the user/client  browser as a cookie
         res.cookie("token", token);

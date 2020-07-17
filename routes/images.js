@@ -9,6 +9,7 @@ const router = express.Router();
 // -------------- Upload a file -----------------
 var userImgDir = "";
 var original_imageName = "";
+var timeNow; // get time now in millisecond
 var storage = multer.diskStorage({
   // specify the destination folder path
   destination: function (req, file, callback) {
@@ -23,9 +24,10 @@ var storage = multer.diskStorage({
   },
   // specify the file name after be uploaded to be created in the directory created above
   filename: function (req, file, callback) {
+    timeNow = new Date().getTime();
     arr = file.originalname.split(".");
     imgExt = arr[arr.length - 1].toLowerCase();
-    original_imageName = global.imgCounter + "_" + 0 + "." + imgExt;
+    original_imageName = timeNow + "_" + 0 + "." + imgExt;
     console.log("original_imageName", original_imageName);
     callback(null, original_imageName);
   },
@@ -62,7 +64,9 @@ router.get("/", authentication, async (req, res) => {
       ? `There are ${imgPathArr.length} images in your profile`
       : `Your image profile is empty`
   );
+  console.log("imgPathArr before sorting", imgPathArr);
   imgPathArr.sort();
+  console.log("imgPathArr after sorting", imgPathArr);
   res.render("images", { imgPathArr: imgPathArr });
 });
 
@@ -85,7 +89,7 @@ router.post("/uploadImage", authentication, (req, res) => {
 
       const img_1_path = path.join(
         userImgDir,
-        global.imgCounter + "_" + 1 + "." + imgExt
+        timeNow + "_" + 1 + "." + imgExt
       );
       // Create an image with the image 6 buffer on the specified path
       fs.writeFileSync(img_1_path, img1Buffer);
@@ -95,7 +99,7 @@ router.post("/uploadImage", authentication, (req, res) => {
 
       const img_2_path = path.join(
         userImgDir,
-        global.imgCounter + "_" + 2 + "." + imgExt
+        timeNow + "_" + 2 + "." + imgExt
       );
       // Create an image with the image 2 buffer on the specified path
       fs.writeFileSync(img_2_path, img2Buffer);
@@ -105,7 +109,7 @@ router.post("/uploadImage", authentication, (req, res) => {
 
       const img_3_path = path.join(
         userImgDir,
-        global.imgCounter + "_" + 3 + "." + imgExt
+        timeNow + "_" + 3 + "." + imgExt
       );
       // Create an image with the image 3 buffer on the specified path
       fs.writeFileSync(img_3_path, img3Buffer);
@@ -115,7 +119,7 @@ router.post("/uploadImage", authentication, (req, res) => {
 
       const img_4_path = path.join(
         userImgDir,
-        global.imgCounter + "_" + 4 + "." + imgExt
+        timeNow + "_" + 4 + "." + imgExt
       );
       // Create an image with the image 4 buffer on the specified path
       fs.writeFileSync(img_4_path, img4Buffer);
@@ -125,46 +129,26 @@ router.post("/uploadImage", authentication, (req, res) => {
 
       const img_5_path = path.join(
         userImgDir,
-        global.imgCounter + "_" + 5 + "." + imgExt
+        timeNow + "_" + 5 + "." + imgExt
       );
       // Create an image with the image 5 buffer on the specified path
       fs.writeFileSync(img_5_path, img5Buffer);
 
-      // update the img counter for the user
-      userModel.updateOne(
-        { _id: req.app.locals.user._id },
-        { $inc: { imgCounter: +1 } },
-        (error, updatedResult) => {
-          if (error) {
-            console.log(
-              "Images are uploaded and processed but the user img counter can not be updated because of this error >>:",
-              error
-            );
-            return res.end(
-              "Images are uploaded and processed but the user img counter can not be updated because of this error >>:" +
-                error
-            );
-          } else {
-            console.log("updatedResult.nModified", updatedResult.nModified);
-            console.log("updatedResult.ok", updatedResult.ok);
-          }
-        }
-      );
       // the ajax response (success)
       res.end("The image file has been uploaded and processed successfully.");
     } catch (error) {
       // the ajax response (error)
       console.error("Error during uploading the image ! : >> ", error.message);
       return res.end(
-        "Error during uploading the image ! : >> " + error.message
+        "Error during uploading the image ! : error >> " + error.message
       );
     }
   });
 });
 
-router.get("/delete/:id/:imageNum", authentication, async (req, res) => {
+router.get("/delete/:id/:imgTime", authentication, async (req, res) => {
   if (req.app.locals.user._id == req.params.id) {
-    img2BeDelete_0 = path.join(userImgDir, req.params.imageNum);
+    img2BeDelete_0 = path.join(userImgDir, req.params.imgTime);
     img2BeDelete_1 = img2BeDelete_0.replace("_0", "_1");
     img2BeDelete_2 = img2BeDelete_0.replace("_0", "_2");
     img2BeDelete_3 = img2BeDelete_0.replace("_0", "_3");
@@ -176,12 +160,6 @@ router.get("/delete/:id/:imageNum", authentication, async (req, res) => {
     fs.unlinkSync(img2BeDelete_3);
     fs.unlinkSync(img2BeDelete_4);
     fs.unlinkSync(img2BeDelete_5);
-    updatedResult = await userModel.updateOne(
-      { _id: req.app.locals.user._id },
-      { $inc: { imgCounter: -1 } }
-    );
-    console.log("updatedResult.nModified", updatedResult.nModified);
-    console.log("updatedResult.ok", updatedResult.ok);
     res.redirect("/images/");
   } else {
     res.clearCookie("token");
@@ -198,7 +176,8 @@ router.get("/info", authentication, async (req, res) => {
   var i = 0; // img index [1:6]
   var output = "<h2><u>The uploaded images details</u></h2>";
   for await (const imageFile of userImgDirectory) {
-    output += "<h3>" + ++i + " : " + imageFile.name + "</h3>";
+    i += 1;
+    output += "<h3>" + i + " : " + imageFile.name + "</h3>";
     console.log(i + " : " + imageFile.name);
   }
   if (i > 0) {

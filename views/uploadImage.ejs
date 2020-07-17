@@ -6,15 +6,10 @@
     <title>File uploading</title>
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery.form/3.51/jquery.form.min.js"></script>
-    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/css/bootstrap.min.css">
     <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/js/bootstrap.min.js"></script>
-    <style>
-        .navbar {
-            position: relative;
-            min-height: 50px;
-            border: 1px solid transparent;
-        }
-    </style>
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/css/bootstrap.min.css">
+    <link rel="stylesheet" href="/css/style.css">
+    <link rel="stylesheet" href="/css/w3.css">
 
     <script>
         $(document).ready(function () {
@@ -44,32 +39,66 @@
                 }
                 return false;
             });
-        });  
+        });
+        /* This code is not required for the animation. This is only needed for the reparation */
     </script>
-
 </head>
 
 <body>
     <%- include('./header') %>
     <br>
     <br>
-    <h1>Welcome <%= user.username %> in your profile</h1>
-    <h2 style="color: red;"> You can upload an image right now, just choose one and upload it. </h2>
-    <br>
-    <form id="uploadForm" action="/images/uploadImage" method="post">
-        <div class="form-group">
-            <input class="btn btn-primary" type="file" name="fileFormField" id="file" accept="image/*">
+    <div class="container">
+        <% if(user) {  %>
+        <div class=" w3-animate-left">
+            <h1>Welcome <%= user.username %> in your profile</h1>
         </div>
-        <div class="form-group">
-            <button class="btn btn-primary" type="submit" name="submit">Upload image</button>
-            <button type="reset" class="btn btn-danger">Reset</button>
+        <div class=" w3-animate-zoom ">
+            <h2 style="color: red;"> You can upload an image right now, just choose one and upload it. </h2>
         </div>
-        <div class="form-group">
-            <label> Uploading status: </label> <span id="status"></span>
+        <br>
+        <form id="uploadForm" action="/images/uploadImage" method="post">
+            <div class="form-group">
+                <input class="btn btn-primary" type="file" name="fileFormField" id="file" accept="image/*">
+            </div>
+            <br>
+            <div class="form-group">
+                <button class="btn btn-primary" type="submit" name="submit">Upload image</button>
+                <button type="reset" class="btn btn-danger">Reset</button>
+            </div>
+            <br>
+            <div class="form-group">
+                <span style="color:blue"> Uploading status: </span> <span id="status"
+                    style="text-transform:lowercase"></span>
+            </div>
+        </form>
+        <% } else { %>
+        <div class="animate seven">
+            <span>Welcome</span> &nbsp;&nbsp;<span>every</span>&nbsp;&nbsp;<span>one !</span>
         </div>
-
-    </form>
-
+        <div class="animate six">
+            <span> 1) Firstly</span> &nbsp;&nbsp; <span>any</span> &nbsp;&nbsp;<span>user</span>
+            &nbsp;&nbsp;<span>can</span> &nbsp;&nbsp; <span>upload</span> &nbsp;&nbsp;
+            <span>his</span> &nbsp;&nbsp; <span>images</span> &nbsp;&nbsp;<span>easily.</span>
+        </div>
+        <div class="animate four">
+            <span> 2) This</span> &nbsp;&nbsp; <span>system</span> &nbsp;&nbsp; <span>will</span> &nbsp;&nbsp;
+            <span>apply</span> &nbsp;&nbsp; <span>many</span> &nbsp;&nbsp;<span>filters</span>
+            &nbsp;&nbsp;<span>on</span> &nbsp;&nbsp;<span>them.</span>
+        </div>
+        <div class="animate two">
+            <span> 3) All</span> &nbsp;&nbsp; <span>generated</span> &nbsp;&nbsp; <span>will</span> &nbsp;&nbsp;
+            <span>be</span>&nbsp;&nbsp; <span>stored</span>&nbsp;&nbsp; <span>on</span>&nbsp;&nbsp;
+            <span>your</span>&nbsp;&nbsp; <span>profile.</span>
+        </div>
+        <div class="animate three">
+            <span> ** You</span> &nbsp;&nbsp; <span>have</span> &nbsp;&nbsp; <span>to</span> &nbsp;&nbsp;
+            <span>register</span>&nbsp;&nbsp; <span>your</span>&nbsp;&nbsp; <span>account</span>&nbsp;&nbsp;
+            <span>then</span>&nbsp;&nbsp; <span>login</span>&nbsp;&nbsp; <span>for</span>&nbsp;&nbsp;
+            <span>using</span>&nbsp;&nbsp; <span>this</span>&nbsp;&nbsp; <span>system.</span>
+        </div>
+        <% } %>
+    </div>
 
 </body>
 

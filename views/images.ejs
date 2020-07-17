@@ -4,9 +4,10 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Images</title>
-    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/css/bootstrap.min.css">
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
     <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/js/bootstrap.min.js"></script>
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/css/bootstrap.min.css">
+    <link rel="stylesheet" href="/css/w3.css">
     <style>
         .navbar {
             position: relative;
@@ -16,10 +17,8 @@
 
         .container {
             width: auto;
-            padding-top: auto;
-            padding-left: auto;
-            margin-right: auto;
-            margin-bottom: auto;
+            padding-top: 20px;
+            margin-top: 20px;
         }
 
         .table {
@@ -27,63 +26,69 @@
             font-size: large;
             color: red;
             text-align: center;
-
         }
 
         .table>thead>tr>th {
             border: 1px solid blue;
             margin: auto;
             text-align: center;
-
         }
 
         .table>tbody>tr>td {
             border: 1px solid blue;
             margin: auto;
             text-align: center;
-
         }
     </style>
 </head>
 
 <body>
     <%- include('./header') %>
-    <% i=1 %>
-    <% if (imgPathArr.length>0) { %>
-    <!-- <h1><u> There are <%=imgPathArr.length/7 %> uploaded images </u></h1> -->
-    <h2 style="color: red;"> Hello <%= user.username %>, you uploaded <%= imgCounter %> images before.</h2>
-    <div class="table-responsive table-bordered">
-        <table class="table">
-            <thead>
-                <tr>
-                    <th>Original image</th>
-                    <th>Resized by 500*500</th>
-                    <th>Blurred</th>
-                    <th>Gray</th>
-                    <th>Sharped</th>
-                    <th>Rotated by 180</th>
-                    <th>Resized by 250*250</th>
-                </tr>
-            </thead>
-            <tbody>
-                <tr>
-                    <% imgPathArr.forEach((imgPath) => { %>
-                    <td>
-                        <img src="/<%=user._id %>/<%=imgPath %>" />
-                    </td>
-                    <% if (i==7) { %>
-                </tr>
-                <tr>
-                    <% i=0 %>
-                    <% } %>
-                    <% i++ %>
-                    <% }) %>
-            </tbody>
-        </table>
+    <div class="container">
+        <% if (imgPathArr.length>0) { %>
+        <!-- <h1><u> There are <%=imgPathArr.length/6 %> uploaded images </u></h1> -->
+        <h2 style="color: blue;"> Hello <%= user.username %>, you uploaded <%= imgCounter %> images before.</h2>
+        <% i=1 %>
+        <div class="table-responsive table-bordered">
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th>Action</th>
+                        <th>Original image</th>
+                        <th>Resized by 500*500</th>
+                        <th>Blurred</th>
+                        <th>Gray</th>
+                        <th>Sharped</th>
+                        <th>Rotated by 180</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <% imgPathArr.forEach((imgFileName) => { %>
+                        <% if(i==1){  %>
+                        <td>
+                            <a class="btn-danger" href="/images/delete/<%=user._id %>/<%=imgFileName%>">Delete </a>
+                        </td>
+                        <% } %>
+                        <td>
+                            <img src="/<%=user._id %>/<%=imgFileName %>" />
+                        </td>
+                        <% if (i==6) { %>
+                    </tr>
+                    <tr>
+                        <% i=0 %>
+                        <% } %>
+                        <% i++ %>
+                        <% }) %>
+                </tbody>
+            </table>
+        </div>
+        <% } else  {%>
+        <div class="w3-center w3-animate-zoom">
+            <h1 style="color: red;">No images are uploaded yet to your profile!</h1>
+        </div>
+        <% }%>
     </div>
-    <% } else  {%>
-    <h1>No images are uploaded yet to your profile!</h1>
-    <% }%>
 </body>
 
 </html>

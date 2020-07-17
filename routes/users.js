@@ -7,11 +7,18 @@ const path = require("path");
 const uuid = require("uuid");
 const router = express.Router();
 //-------------Routes---------------
-// Add new user from the sign up form post request
+function authentication(req, res, next) {
+  if (req.app.locals.user) {
+    next();
+  } else {
+    req.flash("danger", "Sorry, you must login firstly !");
+    res.redirect("/users/login");
+  }
+}
 
 router.get("/login", (req, res) => {
-  if (req.cookies.token) {
-    res.redirect("/images/uploadImage");
+  if (req.app.locals.user) {
+    res.render("images");
   } else {
     res.render("login");
   }
@@ -83,6 +90,7 @@ router.post(
       dirPath = path.join(__dirname, "..", "uploadedImages", user._id);
       fs.mkdirSync(dirPath);
       console.log("New user has been added : ", user);
+      res.clearCookie("token");
       req.flash(
         "info",
         `${user.username} 's account has been registered successfully`
@@ -132,15 +140,15 @@ router.post(
         // User not founded
         req.flash(
           "danger",
-          "User is not founded ! Please enter an authenticated user credential or register a new one."
+          "User is not found Or may you entered a wrong user credential !"
         );
+        res.clearCookie("token");
         return res.redirect("/users/login");
         // return res.status(404).json({
         //   message: "This user is not founded, please sign up firstly !",
         // });
       } else {
         // User is existed
-
         // if folder of this user is not found, create a new folder for him
         userDirIsNotFounded = false;
         usersImgDir = path.join(__dirname, "..", "uploadedImages", user._id);
@@ -159,7 +167,6 @@ router.post(
         //   message: "This user is logined successfully.",
         //   "User details": user,
         // });
-
         // Store its username and id as a cookies to be used in the authentication and authorization processes
         userObj = {};
         userObj._id = user._id;
@@ -180,24 +187,19 @@ router.post(
   }
 );
 
-router.get("/logout", async (req, res) => {
-  if (req.cookies.token) {
-    var userObj = await jwt.verify(req.cookies.token, "secretkey");
-    console.log("The signed out userObj", userObj);
-    res.clearCookie("token");
-    global.imgCounter = 0;
-    req.flash("info", `${userObj.username} has been logout now`);
-    return res.redirect("/users/login");
-    // return res
-    //   .status(200)
-    //   .json({ message: userObj.username + " has been signed out" });
-  } else {
-    req.flash("danger", "No user is logined ! , please sign in !");
-    res.redirect("/users/login");
-    // return res.status(200).json({
-    //   message: "No user is logined in before, please sign in !",
-    // });
-  }
+router.get("/logout", authentication, (req, res) => {
+  console.log("The signed out userObj", req.app.locals.user);
+  req.flash("info", `${req.app.locals.user.username} has been logout now`);
+  req.app.locals.user = null;
+  res.clearCookie("token");
+  return res.redirect("/users/login");
+  // return res
+  //   .status(200)
+  //   .json({ message: userObj.username + " has been signed out" });
+
+  // return res.status(200).json({
+  //   message: "No user is logined in before, please sign in !",
+  // });
 });
 
 // Get all users
@@ -212,7 +214,7 @@ router.get("/", (req, res) => {
   });
 });
 
-router.get("/:id", (req, res) => {
+router.get("/:id", authentication, (req, res) => {
   userModel.findById(req.params.id, (err, user) => {
     if (err) {
       res.status(500).json({ errorMessage: err.message });
@@ -230,27 +232,21 @@ router.get("/:id", (req, res) => {
 router.delete("/delete/:id", deleting_authorization, async (req, res) => {
   try {
     // find him before deleting process
-    user = await userModel.findById(req.params.id);
-    if (user != null) {
-      userModel.deleteOne({ _id: req.params.id }, (err, deletedResult) => {
+    userModel.findByIdAndDelete(
+      { _id: req.params.id },
+      (err, deletedResult) => {
         if (err) {
           return res.json({ errorMessage: err.message });
-        }
-        if (deletedResult.deletedCount == 0) {
+        } else if (deletedResult.deletedCount == 0) {
           return res.json({ message: "User deleting operation is not done !" });
-        }
-        if (deletedResult.deletedCount > 0) {
+        } else if (deletedResult.deletedCount > 0) {
           res.clearCookie("token");
           return res.json({
             message: `User ${user.username} has been deleted successfully.`,
           });
         }
-      });
-    } else {
-      return res.json({
-        message: "This user is not founded in the db to be deleted",
-      });
-    }
+      }
+    );
   } catch (error) {
     res.status(500).json({ errorMessage: error.message });
   }
@@ -258,9 +254,10 @@ router.delete("/delete/:id", deleting_authorization, async (req, res) => {
 
 async function deleting_authorization(req, res, next) {
   try {
-    if (req.cookies.token) {
-      userObj = await jwt.verify(req.cookies.token, "secretkey");
-      if (userObj._id == req.params.id) {
+    //checks authentication
+    if (req.app.locals.user) {
+      // checks authorization
+      if (req.app.locals.user._id == req.params.id) {
         console.log(
           `The logined user ${userObj.username} is authorized to delete his data`
         );

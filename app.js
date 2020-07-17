@@ -1,8 +1,6 @@
 const express = require("express");
 const mongoose = require("mongoose");
 const cookieParser = require("cookie-parser");
-const imagesRouteFile = require("./routes/images");
-const usersRouterFile = require("./routes/users");
 const path = require("path");
 const moment = require("moment");
 const ejs = require("ejs");
@@ -11,6 +9,9 @@ const dotenv = require("dotenv");
 const flash = require("connect-flash");
 const session = require("express-session");
 const express_messages = require("express-messages");
+const imagesRouteFile = require("./routes/images");
+const usersRouterFile = require("./routes/users");
+const userModel = require("./models/user");
 //---------Create express application-------------
 var app = express();
 dotenv.config();
@@ -27,10 +28,6 @@ app.use(
   })
 );
 app.use(flash());
-app.use(function (req, res, next) {
-  res.locals.messages = express_messages(req, res);
-  next();
-});
 //---------------MongoDB Connection---------------
 mongoose.connect(process.env.DbUrl, {
   useNewUrlParser: true,
@@ -48,18 +45,35 @@ app.set("view engine", "ejs"); // specify the used template engine
 app.set("views", path.join(__dirname, "views")); // set the path of the views folder
 //------------Routes---------------
 app.use(async (req, res, next) => {
+  res.locals.messages = express_messages(req, res); // flash middleware
   if (req.cookies.token) {
     userObj = await jwt.verify(req.cookies.token, "secretkey");
-    res.locals.user = userObj;
-    console.log("Current user is : ", userObj);
+    // get this user from the DB
+    user = await userModel.findById(userObj._id); // the user owner of the cookie
+    // If the user is already existed in the db
+    if (user) {
+      app.locals.user = user;
+      global.imgCounter = user.imgCounter;
+      console.log("Current user is : ", user);
+      next();
+    } else {
+      // No user in the Db, so remove the cookie and login route is redirect
+      app.locals.user = null;
+      res.clearCookie("token");
+      req.flash(
+        "danger",
+        "This user is not authenticated ! Please sign in with another user"
+      );
+      res.redirect("/users/login");
+    }
   } else {
-    console.log("No user is logined");
-    res.locals.user = null;
+    console.log("No user is logined yet");
+    app.locals.user = null;
+    next();
   }
-  next();
 });
 app.get("/", (req, res) => {
-  res.render("login");
+  res.render("uploadImage");
 });
 app.use("/images", imagesRouteFile);
 app.use("/users", usersRouterFile);
